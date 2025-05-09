@@ -1,131 +1,299 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Personal Page</title>
+    <title>Sergo's Personal Page</title>
     <style>
         body {
-            font-family: 'Arial', sans-serif;
+            font-family: 'Poppins', sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f4f4f9;
-            color: #333;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            background: linear-gradient(45deg, #1e3c72, #2a5298, #6b48ff, #1e3c72);
+            background-size: 400%;
+            animation: gradientFlow 15s ease infinite;
+            color: #fff;
         }
+
+        @keyframes gradientFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
         .container {
-            max-width: 800px;
-            background: #fff;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            max-width: 900px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 2.5rem;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
             text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
+
         img {
-            width: 200px;
-            height: 200px;
+            width: 220px;
+            height: 220px;
             border-radius: 50%;
             object-fit: cover;
+            margin-bottom: 1.5rem;
+            border: 4px solid #fff;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #fff;
+            margin: 0.5rem 0;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        p {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            color: #e0e0e0;
+            margin-bottom: 2rem;
+        }
+
+        .currency-block {
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            transition: transform 0.3s ease;
+        }
+
+        .currency-block:hover {
+            transform: translateY(-5px);
+        }
+
+        .currency-block h2 {
+            font-size: 1.8rem;
+            color: #ffd700;
             margin-bottom: 1rem;
         }
-        h1 {
-            font-size: 2rem;
-            color: #2c3e50;
-        }
-        p {
-            font-size: 1.1rem;
-            line-height: 1.6;
-            color: #555;
-        }
-        .bank-accounts {
-            margin-top: 2rem;
-        }
-        .bank-account {
-            background: #e8ecef;
-            padding: 1rem;
+
+        .account-item {
             margin: 0.5rem 0;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background 0.3s;
+            text-align: left;
+            padding: 0 1rem;
         }
-        .bank-account:hover {
-            background: #d1d9e0;
-        }
-        .bank-account span {
+
+        .account-label {
             font-weight: bold;
-            color: #2c3e50;
+            color: #fff;
+            font-size: 1.1rem;
+            display: block;
+            margin-bottom: 0.3rem;
         }
+
+        .bank-account {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bank-account:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.02);
+        }
+
+        .bank-account span {
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        .copy-hint {
+            font-size: 0.8rem;
+            color: #e0e0e0;
+            margin-top: 0.3rem;
+            display: block;
+            opacity: 0.7;
+        }
+
         .copied {
-            color: #27ae60;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #27ae60;
+            color: #fff;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
             font-size: 0.9rem;
-            margin-top: 0.5rem;
+            opacity: 0;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .copied.show {
+            opacity: 1;
+            transform: translate(-50%, -60%);
+        }
+
+        .bank-details {
+            margin-top: 1rem;
+            text-align: left;
+            font-size: 0.9rem;
+            color: #e0e0e0;
             display: none;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: 8px;
+        }
+
+        .bank-details-toggle {
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: #ffd700;
+            text-decoration: underline;
+            margin-top: 0.5rem;
+            display: inline-block;
+        }
+
+        .bank-details-toggle:hover {
+            color: #fff;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+            img {
+                width: 180px;
+                height: 180px;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            p {
+                font-size: 1rem;
+            }
+            .account-label {
+                font-size: 1rem;
+            }
+            .bank-account span {
+                font-size: 0.9rem;
+            }
+            .copy-hint {
+                font-size: 0.7rem;
+            }
+            .bank-details {
+                font-size: 0.8rem;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <img src="https://via.placeholder.com/200" alt="Your Photo">
-        <h1>John Doe</h1>
+        <img src="images/sergo.jpg" alt="Sergo's Photo">
+        <h1>Sergo</h1>
         <p>
-            Hello! I'm John, a passionate software developer with a love for creating beautiful and functional websites. 
-            I enjoy working on innovative projects and sharing my knowledge with the community.
+            Hey! These are all my bank and crypto accounts!<br>
+            Привет! Это мои банковские и крипто счета!
         </p>
-        <div class="bank-accounts">
-            <h2>Bank Accounts</h2>
-            <div class="bank-account" onclick="copyToClipboard('1234-5678-9012-3456', this)">
-                <span>Account 1:</span> 1234-5678-9012-3456
-                <div class="copied">Copied!</div>
+        <span class="account-label">Mail:</span>
+        <div class="bank-account" onclick="copyToClipboard('shaginov.sergo@gmail.com', this)">
+                    <span>shaginov.sergo@gmail.com</span>
+                    <div class="copied">Copied!</div>
+                </div>
+        <span class="account-label">Phone:</span>
+        <div class="bank-account" onclick="copyToClipboard('+995592802868', this)">
+                    <span>+995592802868</span>
+                    <div class="copied">Copied!</div>
+                </div>
+        <div class="currency-block">
+            <h2>GEL</h2>
+            <div class="account-item">
+                <span class="account-label">Name:</span>
+                <div class="bank-account" onclick="copyToClipboard('Sergo Shaginovi', this)">
+                    <span>Sergo Shaginovi</span>
+                    <div class="copied">Copied!</div>
+                </div>
+                <span class="copy-hint">TAP TO COPY / НАЖМИТЕ, ЧТОБЫ СКОПИРОВАТЬ</span>
             </div>
-            <div class="bank-account" onclick="copyToClipboard('9876-5432-1098-7654', this)">
-                <span>Account 2:</span> 9876-5432-1098-7654
-                <div class="copied">Copied!</div>
+            <div class="account-item">
+                <span class="account-label">Bank of Georgia:</span>
+                <div class="bank-account" onclick="copyToClipboard('GE79BG0000000161428825', this)">
+                    <span>GE79BG0000000161428825</span>
+                    <div class="copied">Copied!</div>
+                </div>
+                <span class="copy-hint">TAP TO COPY / НАЖМИТЕ, ЧТОБЫ СКОПИРОВАТЬ</span>
             </div>
-            <div class="bank-account" onclick="copyToClipboard('4567-8901-2345-6789', this)">
-                <span>Account 3:</span> 4567-8901-2345-6789
-                <div class="copied">Copied!</div>
+            <div class="account-item">
+                <span class="account-label">TBC Bank:</span>
+                <div class="bank-account" onclick="copyToClipboard('GE68TB7091945061100108', this)">
+                    <span>GE68TB7091945061100108</span>
+                    <div class="copied">Copied!</div>
+                </div>
+                <span class="copy-hint">TAP TO COPY / НАЖМИТЕ, ЧТОБЫ СКОПИРОВАТЬ</span>
+            </div>
+        </div>
+        <div class="currency-block">
+            <h2>USD</h2>
+            <div class="account-item">
+                <span class="account-label">CRYPTO USDT IN TRC20:</span>
+                <div class="bank-account" onclick="copyToClipboard('TDNrhhbyf9hHB1Fpm1siYEbn3oqDWNRPb6', this)">
+                    <span>TDNrhhbyf9hHB1Fpm1siYEbn3oqDWNRPb6</span>
+                    <div class="copied">Copied!</div>
+                </div>
+                <span class="copy-hint">TAP TO COPY / НАЖМИТЕ, ЧТОБЫ СКОПИРОВАТЬ</span>
+            </div>
+            <div class="account-item">
+                <span class="account-label">PAYPAL:</span>
+                <div class="bank-account" onclick="copyToClipboard('shaginov.sergo@gmail.com', this)">
+                    <span>shaginov.sergo@gmail.com</span>
+                    <div class="copied">Copied!</div>
+                </div>
+                <span class="copy-hint">TAP TO COPY / НАЖМИТЕ, ЧТОБЫ СКОПИРОВАТЬ</span>
+            </div>
+        </div>
+        <div class="currency-block">
+            <h2>EUR/USD BANK</h2>
+            <div class="account-item">
+                <span class="account-label">Bank of Georgia:</span>
+                <div class="bank-account" onclick="copyToClipboard('GE79BG0000000161428825', this)">
+                    <span>GE79BG0000000161428825</span>
+                    <div class="copied">Copied!</div>
+                </div>
+                <span class="copy-hint">TAP TO COPY / НАЖМИТЕ, ЧТОБЫ СКОПИРОВАТЬ</span>
+            </div>
+            <div class="account-item">
+                <span class="account-label">TBC Bank:</span>
+                <div class="bank-account" onclick="copyToClipboard('GE68TB7091945061100108', this)">
+                    <span>GE68TB7091945061100108</span>
+                    <div class="copied">Copied!</div>
+                </div>
+                <span class="copy-hint">TAP TO COPY / НАЖМИТЕ, ЧТОБЫ СКОПИРОВАТЬ</span>
+            </div>
+            <div class="bank-details-toggle" onclick="toggleBankDetails('bank-details')">Show Bank Transfer Details</div>
+            <div id="bank-details" class="bank-details">
+                <strong>Bank of Georgia (USD):</strong><br>
+                Intermediary bank: Citibank N.A., New York, USA; SWIFT: CITIUS33<br>
+                Account with institution: Bank of Georgia, SWIFT: BAGAGE22<br>
+                Beneficiary: SHAGINOVI SERGO<br><br>
+                <strong>TBC Bank (USD):</strong><br>
+                Beneficiary’s Bank: JSC TBC Bank, Tbilisi, Georgia; SWIFT: TBCBGE22<br>
+                Beneficiary’s IBAN: GE68TB7091945061100108<br>
+                Name of Beneficiary: SERGO SHAGINOVI<br>
+                Intermediary Bank: Citibank N.A., New York, USA; SWIFT: CITIUS33<br>
+                Intermediary Bank: JPMorgan Chase Bank National Association, New York, USA; SWIFT: CHASUS33<br><br>
+                <strong>TBC Bank (EUR):</strong><br>
+                Beneficiary’s Bank: JSC TBC Bank, Tbilisi, Georgia; SWIFT: TBCBGE22<br>
+                Beneficiary’s IBAN: GE68TB7091945061100108<br>
+                Name of Beneficiary: SERGO SHAGINOVI<br>
+                Intermediary Bank: J.P. Morgan SE, Frankfurt am Main, Germany; SWIFT: CHASDEFX<br>
+                Intermediary Bank: Commerzbank AG, Frankfurt am Main, Germany; SWIFT: COBADEFF
             </div>
         </div>
     </div>
@@ -134,13 +302,25 @@
         function copyToClipboard(text, element) {
             navigator.clipboard.writeText(text).then(() => {
                 const copiedMessage = element.querySelector('.copied');
-                copiedMessage.style.display = 'block';
+                copiedMessage.classList.add('show');
                 setTimeout(() => {
-                    copiedMessage.style.display = 'none';
-                }, 2000);
+                    copiedMessage.classList.remove('show');
+                }, 1500);
             }).catch(err => {
                 console.error('Failed to copy: ', err);
             });
+        }
+
+        function toggleBankDetails(id) {
+            const details = document.getElementById(id);
+            const toggle = details.previousElementSibling;
+            if (details.style.display === 'block') {
+                details.style.display = 'none';
+                toggle.textContent = 'Show Bank Transfer Details';
+            } else {
+                details.style.display = 'block';
+                toggle.textContent = 'Hide Bank Transfer Details';
+            }
         }
     </script>
 </body>
